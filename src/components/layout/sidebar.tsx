@@ -7,7 +7,7 @@ export function Sidebar() {
     <aside className="pih-sidebar hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-64 lg:flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="pih-sidebar-brand flex h-16 items-center px-6">
         <Link href="/dashboard" aria-label="Go to Dashboard" className="text-base font-semibold tracking-tight">
-          RISE <span className="text-sidebar-primary">Hub</span>
+          RISE <span className="text-sidebar-primary">Hub 2.0</span>
         </Link>
       </div>
       <NavLinks />
