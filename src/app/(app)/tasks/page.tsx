@@ -5,13 +5,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { TasksClient } from "@/components/tasks/tasks-client";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default async function TasksPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const { status } = await searchParams;
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ status?: string; area?: string }> }) {
+  const { status, area } = await searchParams;
   const [tasks, initiatives, markets] = await Promise.all([
     prisma.task.findMany({
       orderBy: { dueDate: "asc" },
       include: {
-        initiative: { select: { id: true, code: true, name: true } },
+        initiative: { select: { id: true, code: true, name: true, isReleased: true } },
         market: { select: { id: true, code: true, name: true } },
       },
     }),
@@ -25,6 +25,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     }),
   ]);
 
+  const visibleTasks=tasks.filter(t=>area==="BACKLOG"?t.initiative?.isReleased===false:area==="ACTIVE"?t.initiative?.isReleased!==false:true);
   const activeTasks = tasks.filter((task) => task.status !== "DONE").length;
   const inProgressTasks = tasks.filter((task) => task.status === "IN_PROGRESS").length;
 
@@ -63,8 +64,9 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </Link>
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-2 text-sm"><a href="/tasks?area=ALL#tasks" className="rounded border px-3 py-2">All</a><a href="/tasks?area=BACKLOG#tasks" className="rounded border px-3 py-2">Backlog</a><a href="/tasks?area=ACTIVE#tasks" className="rounded border px-3 py-2">Active</a></div>
       <div id="tasks">
-        <TasksClient tasks={tasks} initiatives={initiatives} markets={markets} initialStatus={status ?? "ALL"} />
+        <TasksClient tasks={visibleTasks} initiatives={initiatives} markets={markets} initialStatus={status ?? "ALL"} />
       </div>
     </div>
   );
