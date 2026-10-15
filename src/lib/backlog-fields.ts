@@ -44,8 +44,9 @@ export const srexFields: FieldDef[]=[
 ];
 // SREx overlaps (name, ID, owner, brand, CSAT, financial benefit) come from the common initiative / backlog fields.
 export function srexReadiness(data: Record<string,unknown> | null | undefined){
- const filled=srexFields.filter(f=>{const value=String(data?.[f.key]??"").trim();return value.length>0;}).length;
- return {filled,total:srexFields.length,percent:Math.round(filled/srexFields.length*100)};
+ const readinessFields=srexFields.filter(f=>f.key!=="referenceLink");
+ const filled=readinessFields.filter(f=>{const value=String(data?.[f.key]??"").trim();return value.length>0;}).length;
+ return {filled,total:readinessFields.length,percent:Math.round(filled/readinessFields.length*100)};
 }
 export const backlogStages=["IDEATION","EVALUATION","DETAILING","DEVELOPMENT"] as const;
 export const backlogPriorities=["","Wave 1 (Quick wins)","Wave 2 (Big tickets)","Wave 3","Wave 4"] as const;
