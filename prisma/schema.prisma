@@ -82,6 +82,8 @@ model Initiative {
   name        String
   description String
   owner       String
+  isReleased  Boolean @default(true)
+  releasedAt  DateTime?
   status      Health   @default(ON_TRACK)
   progress    Int      @default(0)
   stage       String   @default("IDEATION")
@@ -91,6 +93,8 @@ model Initiative {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  backlogData BacklogData?
+  srexData    SrexData?
   markets   MarketInitiative[]
   tasks     Task[]
   risks     Risk[]
@@ -255,4 +259,17 @@ model Activity {
   entityId    String
   actor       String
   createdAt   DateTime @default(now())
+}
+
+// Pipeline metadata for RISE Hub 2.0. Existing initiatives default to released.
+model BacklogData {
+  initiativeId String @id
+  fields Json @default("{}")
+  initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+}
+
+model SrexData {
+  initiativeId String @id
+  fields Json @default("{}")
+  initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
 }
