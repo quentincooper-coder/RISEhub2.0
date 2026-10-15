@@ -24,7 +24,7 @@ export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
    if(typeof body.owner==="string")update.owner=body.owner.trim().slice(0,250);
    if(typeof body.stage==="string"&&backlogStages.includes(body.stage as typeof backlogStages[number])&&!existing.isReleased)update.stage=body.stage;
    if(typeof body.priority==="string"&&backlogPriorities.includes(body.priority as typeof backlogPriorities[number])){
-    await prisma.backlogData.upsert({where:{initiativeId:id},create:{initiativeId:id,fields:{...((existing.backlogData?.fields??{}) as object),priority:body.priority}},update:{fields:{...((existing.backlogData?.fields??{}) as object),priority:body.priority}}});
+    await prisma.backlogData.upsert({where:{initiativeId:id},create:{initiativeId:id,fields:{...((existing.backlogData?.fields??{}) as Record<string,Prisma.InputJsonValue>),priority:body.priority}},update:{fields:{...((existing.backlogData?.fields??{}) as object),priority:body.priority}}});
    }
    if(Object.keys(update).length)await prisma.initiative.update({where:{id},data:update});
   }else if(body.section==="backlog"||body.section==="srex"){
@@ -33,7 +33,7 @@ export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
    const input=body.fields as Record<string,unknown>;
    if(Object.keys(input).some(k=>!keys.has(k)||typeof input[k]!=="string"||String(input[k]).length>20000))return NextResponse.json({error:"Invalid field"},{status:400});
    const old=(body.section==="backlog"?existing.backlogData?.fields:existing.srexData?.fields)??{};
-   const merged={...(old as object),...input};
+   const merged: Prisma.InputJsonObject={...(old as Record<string,Prisma.InputJsonValue>),...(input as Record<string,string>)};
    if(body.section==="backlog")await prisma.backlogData.upsert({where:{initiativeId:id},create:{initiativeId:id,fields:merged},update:{fields:merged}});
    else await prisma.srexData.upsert({where:{initiativeId:id},create:{initiativeId:id,fields:merged},update:{fields:merged}});
   }else{return NextResponse.json({error:"Invalid action"},{status:400});}
