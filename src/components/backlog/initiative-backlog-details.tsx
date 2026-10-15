@@ -73,7 +73,7 @@ export function InitiativeBacklogDetails({initiativeId,isReleased,backlog,srex,s
  }
  useEffect(()=>{
   const warn=(event:BeforeUnloadEvent)=>{
-   if(dirty.current.backlog.size||dirty.current.srex.size||saveStatus==="saving"){
+   if(dirty.current.backlog.size||dirty.current.srex.size||timer.current){
     event.preventDefault();
    }
   };
@@ -82,7 +82,7 @@ export function InitiativeBacklogDetails({initiativeId,isReleased,backlog,srex,s
    if(timer.current)clearTimeout(timer.current);
    window.removeEventListener("beforeunload",warn);
   };
- },[saveStatus]);
+ },[]);
  async function switchLifecycle(){
   setBusy(true);setMessage("");
   try{
