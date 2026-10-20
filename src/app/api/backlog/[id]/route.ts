@@ -19,6 +19,18 @@ export async function PATCH(req:Request,{params}:{params:Promise<{id:string}>}){
     prisma.initiative.update({where:{id},data:{isReleased:release,releasedAt:release?new Date():null,stage:release?"ROLLOUT":"EVALUATION"}}),
     prisma.activity.create({data:{type:release?"INITIATIVE_RELEASED":"INITIATIVE_RETURNED",entityType:"Initiative",entityId:id,actor:"User",description:release?`Released ${existing.name} for implementation (SREx ${sr.percent}% complete)`:`Returned ${existing.name} to backlog`}})
    ]);
+  } else if(body.section==="status"){
+   if(existing.isReleased)return NextResponse.json({error:"Only backlog initiatives can change status"},{status:400});
+   if(typeof body.value!=="string"||body.value.length>2000)return NextResponse.json({error:"Invalid status"},{status:400});
+   const value=body.value.trim();
+   await prisma.$transaction(async tx=>{
+    // Lock the initiative by updating it before appending a new history record.
+    // Empty input is allowed as a current status, and its change is audited too.
+    const current=await tx.initiative.findUniqueOrThrow({where:{id},select:{backlogStatus:true}});
+    if(current.backlogStatus===value)return;
+    await tx.initiative.update({where:{id},data:{backlogStatus:value}});
+    await tx.initiativeStatusEntry.create({data:{initiativeId:id,value}});
+   });
   } else if(body.section==="overview"){
    const update:Prisma.InitiativeUpdateInput={};
    if(typeof body.owner==="string")update.owner=body.owner.trim().slice(0,250);
