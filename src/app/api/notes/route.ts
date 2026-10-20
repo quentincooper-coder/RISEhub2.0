@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 
 export async function POST(request: Request) {
   try {
@@ -14,9 +15,19 @@ export async function POST(request: Request) {
     ]);
     if ((marketId && !market) || (initiativeId && !initiative)) return NextResponse.json({ error:"Market or initiative not found." },{status:400});
     const note = await prisma.note.create({ data:{content,marketId,initiativeId} });
-    await prisma.activity.create({data:{type:"NOTE_CREATED",description:initiativeId?"Added an initiative note":"Added a market note",entityType:initiativeId?"Initiative":"Market",entityId:initiativeId??marketId!,actor:"You"}});
+    // Activity is supplementary: never report a failed note when its insert succeeded.
+    try {
+      await prisma.activity.create({data:{type:"NOTE_CREATED",description:initiativeId?"Added an initiative note":"Added a market note",entityType:initiativeId?"Initiative":"Market",entityId:initiativeId??marketId!,actor:"You"}});
+    } catch (activityError) {
+      console.error("Note saved, but activity logging failed", activityError);
+    }
+    if(initiativeId)revalidatePath(`/initiatives/${initiativeId}`);
+    if(marketId)revalidatePath(`/markets/${marketId}`);
     return NextResponse.json(note,{status:201});
-  } catch { return NextResponse.json({ error:"Could not save note." },{status:500}); }
+  } catch (error) {
+    console.error("Could not save note",error);
+    return NextResponse.json({ error:"Could not save note. Please try again." },{status:500});
+  }
 }
 
 export async function DELETE(request: Request) {
