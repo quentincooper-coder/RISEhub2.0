@@ -90,6 +90,8 @@ model Initiative {
   startDate   DateTime?
   targetDate  DateTime?
   keyKpis     String?
+  backlogStatus String @default("")
+  backlogStatusHistory InitiativeStatusEntry[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -272,4 +274,15 @@ model SrexData {
   initiativeId String @id
   fields Json @default("{}")
   initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+}
+
+// Append-only status timeline for the backlog. The existing Health status is independent.
+model InitiativeStatusEntry {
+  id String @id @default(cuid())
+  initiativeId String
+  value String
+  createdAt DateTime @default(now())
+  initiative Initiative @relation(fields: [initiativeId], references: [id], onDelete: Cascade)
+
+  @@index([initiativeId, createdAt])
 }
