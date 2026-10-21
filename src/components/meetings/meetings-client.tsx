@@ -14,6 +14,7 @@ import { SearchBar } from "@/components/shared/search-bar";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { MeetingForm } from "@/components/forms/meeting-form";
 import { CalendarImport } from "@/components/meetings/calendar-import";
+import { MeetingsCalendar } from "@/components/meetings/meetings-calendar";
 import { meetingTypeLabel } from "@/lib/status";
 import { deleteMeeting } from "@/lib/actions/meetings";
 
@@ -33,6 +34,7 @@ export function MeetingsClient({meetings,markets,initiatives}:{meetings:MeetingR
   {id:"actions",header:"",enableSorting:false,cell:({row})=><div className="flex justify-end gap-1"><Button variant="ghost" size="icon" onClick={()=>setViewingMeeting(row.original)}><Eye className="h-4 w-4"/></Button><Button variant="ghost" size="icon" onClick={()=>{setEditingMeeting(row.original);setDialogOpen(true)}}><Pencil className="h-4 w-4"/></Button><Button variant="ghost" size="icon" className="text-destructive" onClick={()=>setDeleteTarget(row.original)}><Trash2 className="h-4 w-4"/></Button></div>}
  ];
  return <div>
+  <MeetingsCalendar meetings={meetings} onMeetingClick={setViewingMeeting} />
   <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div className="flex rounded-lg border bg-background p-1">{(["UPCOMING","PAST","REVIEW"] as Tab[]).map(t=><Button key={t} size="sm" variant={tab===t?"default":"ghost"} onClick={()=>setTab(t)}>{t==="UPCOMING"?"Upcoming":t==="PAST"?"Past":"AI Review"}</Button>)}</div><div className="flex gap-2"><Button variant="outline" onClick={()=>setImportOpen(true)}><FileUp className="h-4 w-4"/>Import</Button><Button onClick={()=>{setEditingMeeting(undefined);setDialogOpen(true)}}><Plus className="h-4 w-4"/>Add Meeting</Button></div></div>
   <FilterBar className="mb-4"><SearchBar placeholder="Search meetings and minutes..." value={search} onChange={setSearch} className="w-full sm:w-64"/><Select value={scopeFilter} onValueChange={setScopeFilter}><SelectTrigger className="w-full sm:w-44"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ALL">All scopes</SelectItem><SelectItem value="MARKET">Market</SelectItem><SelectItem value="INITIATIVE">Initiative</SelectItem></SelectContent></Select></FilterBar>
   {tab==="REVIEW"&&<div className="mb-4 rounded-xl border border-[#78FAAE] bg-[#78FAAE]/10 p-4"><div className="flex gap-3"><Brain className="mt-0.5 h-5 w-5"/><div><p className="font-semibold">Meeting Intelligence Review</p><p className="text-sm text-muted-foreground">Past meetings with minutes appear here. Review the extracted intelligence before it becomes project data.</p></div></div></div>}
