@@ -50,7 +50,7 @@ export function MarketStatusPreview({ marketName }: { marketName: string }) {
           <p className="mt-1 text-xs text-muted-foreground">Market meeting minutes will be available as a source for status updates.</p>
           <Button disabled type="button" variant="outline" size="sm" className="mt-3 w-full"><Sparkles className="h-4 w-4" />Suggest status from minutes (coming soon)</Button>
         </div>
-        <p className="text-xs text-muted-foreground">UI preview only: status updates are not saved permanently; no AI is active.</p></div>
+        <p className="text-xs text-muted-foreground">UI preview only: status updates are not saved permanently; no AI is active.</p></div>}
       </CardContent>
     </Card>
   );
