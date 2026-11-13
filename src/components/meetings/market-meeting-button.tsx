@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarPlus, X } from "lucide-react";
+import { CalendarPlus, FileUp, Sparkles, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createMeeting, deleteMeeting, updateMeeting } from "@/lib/actions/meetings";
@@ -55,6 +55,12 @@ export function MarketMeetingButton({ market, meeting, children }: { market: Mar
         <div className="grid grid-cols-2 gap-3"><label className="grid gap-1.5 text-sm">Type<select className="h-10 rounded-md border bg-background px-3" value={type} onChange={e=>setType(e.target.value)}><option value="STATUS_REVIEW">Status Review</option><option value="STEERING_COMMITTEE">Steering Committee</option><option value="WORKSHOP">Workshop</option><option value="KICKOFF">Kickoff</option><option value="OTHER">Other</option></select></label><label className="grid gap-1.5 text-sm">Date & time<input type="datetime-local" className="h-10 rounded-md border bg-background px-3" value={date} onChange={e=>setDate(e.target.value)}/></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="grid gap-1.5 text-sm">Participants<input className="h-10 rounded-md border bg-background px-3" value={participants} onChange={e=>setParticipants(e.target.value)}/></label><label className="grid gap-1.5 text-sm">Location<input className="h-10 rounded-md border bg-background px-3" value={location} onChange={e=>setLocation(e.target.value)}/></label></div>
         <label className="grid gap-1.5 text-sm">Agenda / notes<textarea className="min-h-28 rounded-md border bg-background p-3" value={notes} onChange={e=>setNotes(e.target.value)}/></label>
+        <div className="rounded-lg border border-dashed p-4">
+          <p className="flex items-center gap-2 text-sm font-medium"><FileUp className="h-4 w-4"/>Upload Meeting Minutes</p>
+          <p className="mt-1 text-xs text-muted-foreground">Attach minutes when creating a meeting or add them afterwards. File storage is coming soon.</p>
+          <input type="file" disabled aria-label="Upload Meeting Minutes coming soon" className="mt-3 block w-full cursor-not-allowed text-sm opacity-50" accept=".pdf,.doc,.docx,.txt" />
+          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><Sparkles className="h-4 w-4"/>AI-supported market status proposals will be added later.</p>
+        </div>
         {error?<p className="text-sm text-destructive">{error}</p>:null}
         <div className="flex justify-end gap-2"><Button type="button" onClick={save} disabled={!date||saving||deleting}>{saving?"Saving...":meeting?"Save Changes":"Schedule meeting"}</Button>{meeting?<Button type="button" variant="destructive" onClick={deleteCurrentMeeting} disabled={saving||deleting}>{deleting?"Deleting...":"Delete Meeting"}</Button>:null}</div>
       </div>
