@@ -15,6 +15,7 @@ import { NetworkContacts } from "@/components/markets/network-contacts";
 import { AddInitiative } from "@/components/markets/add-initiative";
 import { RiseImplementationPlan } from "@/components/markets/rise-implementation-plan";
 import { MarketFormButton } from "@/components/markets/market-form-button";
+import { MarketStatusPreview } from "@/components/markets/market-status-preview";
 import { RemoveMarketInitiative } from "@/components/markets/remove-market-initiative";
 
 function detectedMarketMilestones(meetings:{title:string;notes:string;date:Date}[]){const relevant=meetings.filter(m=>m.date<=new Date());const onboarding=relevant.some(m=>/onboard|kick.?off/.test(`${m.title} ${m.notes}`.toLowerCase()));const followup=relevant.some(m=>/1:1|1-1|follow.?up|follow up/.test(`${m.title} ${m.notes}`.toLowerCase()));return followup?2:onboarding?1:0;}
