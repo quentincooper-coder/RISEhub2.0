@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
+import { FileUp, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +29,12 @@ export function MeetingForm({markets,initiatives,meeting,onSuccess}:Props){
   {scope==="MARKET"?<div className="space-y-1.5"><Label>Market</Label><Select value={watch("marketId")} onValueChange={v=>setValue("marketId",v)}><SelectTrigger><SelectValue placeholder="Select a market"/></SelectTrigger><SelectContent>{markets.map(m=><SelectItem key={m.id} value={m.id}>{m.code} · {m.name}</SelectItem>)}</SelectContent></Select></div>:<div className="space-y-1.5"><Label>Initiative</Label><Select value={watch("initiativeId")} onValueChange={v=>setValue("initiativeId",v)}><SelectTrigger><SelectValue placeholder="Select an initiative"/></SelectTrigger><SelectContent>{initiatives.map(i=><SelectItem key={i.id} value={i.id}>{i.code ? `${i.code} · ` : ""}{i.name}</SelectItem>)}</SelectContent></Select></div>}
   <div className="grid grid-cols-2 gap-4"><div className="space-y-1.5"><Label htmlFor="participants">Participants</Label><Input id="participants" placeholder="Names or email addresses" {...register("participants")}/></div><div className="space-y-1.5"><Label htmlFor="location">Location</Label><Input id="location" placeholder="Room, city or Teams" {...register("location")}/></div></div>
   <div className="space-y-1.5"><Label htmlFor="notes">Notes</Label><Textarea id="notes" rows={3} {...register("notes")}/></div>
+  {scope==="MARKET" && <div className="rounded-lg border border-dashed p-4">
+    <p className="flex items-center gap-2 text-sm font-medium"><FileUp className="h-4 w-4"/>Upload Meeting Minutes</p>
+    <p className="mt-1 text-xs text-muted-foreground">Attach meeting minutes now or edit this meeting later to add them. File uploads are not yet active.</p>
+    <input type="file" disabled aria-label="Meeting minutes upload coming soon" accept=".pdf,.doc,.docx,.txt" className="mt-3 block w-full cursor-not-allowed text-sm opacity-50"/>
+    <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><Sparkles className="h-4 w-4"/>AI-supported market status suggestions coming soon.</p>
+  </div>}
   {serverError?<p className="text-sm text-destructive">{serverError}</p>:null}<div className="flex justify-end gap-2 pt-2">{meeting?<Button type="button" variant="destructive" onClick={onDelete} disabled={isSubmitting||isDeleting}>{isDeleting?"Deleting...":"Delete Meeting"}</Button>:null}<Button type="submit" disabled={isSubmitting||isDeleting}>{meeting?"Save Changes":"Add Meeting"}</Button></div>
  </form>
 }
