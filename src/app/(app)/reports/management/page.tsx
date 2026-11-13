@@ -14,28 +14,29 @@ function date(value: Date | null | undefined) {
 export default async function ManagementReportPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
   const marketId = params.marketId;
-  const initiativeId = params.initiativeId;
-  const weeks = Math.min(Math.max(Number(params.weeks || 6), 1), 52);
-  const since = new Date(Date.now() - weeks * 7 * 24 * 60 * 60 * 1000);
+  const initiativeId = params.initiativeId && params.initiativeId !== "ALL" ? params.initiativeId : undefined;
+  const weeks = params.weeks ? Math.min(Math.max(Number(params.weeks) || 6, 1), 52) : null;
+  const since = weeks === null ? null : new Date(Date.now() - weeks * 7 * 24 * 60 * 60 * 1000);
+  const person = params.person?.trim() || null;
 
   const [market, initiative, allMeetings, tasks, risks, activities] = await Promise.all([
     marketId ? prisma.market.findUnique({ where: { id: marketId } }) : null,
     initiativeId ? prisma.initiative.findUnique({ where: { id: initiativeId } }) : null,
-    prisma.meeting.findMany({ where: { date: { gte: since } }, orderBy: { date: "desc" } }),
-    initiativeId ? prisma.task.findMany({ where: { initiativeId }, orderBy: { dueDate: "asc" } }) : [],
-    initiativeId ? prisma.risk.findMany({ where: { initiativeId }, orderBy: [{ severity: "desc" }, { updatedAt: "desc" }] }) : [],
-    prisma.activity.findMany({ where: { createdAt: { gte: since } }, orderBy: { createdAt: "desc" }, take: 30 }),
+    prisma.meeting.findMany({ where: since ? { date: { gte: since } } : {}, orderBy: { date: "desc" } }),
+    prisma.task.findMany({ where: { ...(initiativeId ? { initiativeId } : {}), ...(marketId ? { marketId } : {}), ...(person ? { assignee: person } : {}) }, orderBy: { dueDate: "asc" } }),
+    prisma.risk.findMany({ where: { ...(initiativeId ? { initiativeId } : {}), ...(person ? { owner: person } : {}), ...(marketId ? { initiative: { markets: { some: { marketId } } } } : {}) }, orderBy: [{ severity: "desc" }, { updatedAt: "desc" }] }),
+    prisma.activity.findMany({ where: { ...(since ? { createdAt: { gte: since } } : {}), ...(person ? { actor: person } : {}) }, orderBy: { createdAt: "desc" }, take: 100 }),
   ]);
 
   const marketNeedles = market ? [market.name.toLowerCase(), market.code.toLowerCase()] : [];
   const initiativeNeedle = initiative?.code?.toLowerCase();
   const meetings = allMeetings.filter((m) => {
     const text = `${m.title}\n${m.notes}`.toLowerCase();
-    return (!marketId || m.marketId === marketId || marketNeedles.some((n) => text.includes(n))) && (!initiativeId || m.initiativeId === initiativeId || (!!initiativeNeedle && text.includes(initiativeNeedle)));
+    return (!marketId || m.marketId === marketId || marketNeedles.some((n) => text.includes(n))) && (!initiativeId || m.initiativeId === initiativeId || (!!initiativeNeedle && text.includes(initiativeNeedle))) && (!person || (m.participants ?? "").toLowerCase().includes(person.toLowerCase()));
   });
   const scopedActivities = activities.filter((a) => {
     const text = `${a.type} ${a.description}`.toLowerCase();
-    return a.entityId === marketId || a.entityId === initiativeId || marketNeedles.some((n) => text.includes(n)) || (!!initiativeNeedle && text.includes(initiativeNeedle));
+    return (!marketId && !initiativeId) || a.entityId === marketId || a.entityId === initiativeId || marketNeedles.some((n) => text.includes(n)) || (!!initiativeNeedle && text.includes(initiativeNeedle));
   }).slice(0, 8);
   const openTasks = tasks.filter((t) => t.status !== "DONE").slice(0, 8);
   const openRisks = risks.filter((r) => r.status !== "CLOSED").slice(0, 5);
@@ -58,7 +59,7 @@ export default async function ManagementReportPage({ searchParams }: { searchPar
           <div className="p-8">
             <div className="report-kicker text-[#78FAAE]">Project Intelligence Hub · Management Report</div>
             <div className="mt-5 flex items-end justify-between gap-6">
-              <div><h1 className="text-3xl font-black tracking-tight">{market?.name ?? "All Markets"} · {initiative?.code ?? "Portfolio"}</h1><p className="mt-2 max-w-2xl text-sm font-light text-white/70">{initiative?.name ?? "Cross-initiative management overview"} · Last {weeks} weeks</p></div>
+              <div><h1 className="text-3xl font-black tracking-tight">{market?.name ?? "All Markets"} · {initiative?.code ?? "Portfolio"}</h1><p className="mt-2 max-w-2xl text-sm font-light text-white/70">{initiative?.name ?? "Cross-initiative management overview"} · {weeks === null ? "All time" : `Last ${weeks} weeks`}</p></div>
               <div className="text-right text-xs text-white/65">Generated<br/><span className="text-sm font-black text-white">{date(new Date())}</span></div>
             </div>
           </div>
@@ -81,7 +82,7 @@ export default async function ManagementReportPage({ searchParams }: { searchPar
 
         <section className="report-card rounded-xl bg-white p-6 shadow-sm"><div className="report-kicker text-[#00A36C]">Source Trail</div><div className="mt-4 grid grid-cols-2 gap-3">{meetings.slice(0,4).map(m=><div key={m.id} className="rounded-lg border border-[#dce2df] p-3"><div className="text-xs font-black">{m.title}</div><div className="report-source mt-1">Meeting Notes · {date(m.date)}</div></div>)}{scopedActivities.slice(0,4).map(a=><div key={a.id} className="rounded-lg border border-[#dce2df] p-3"><div className="text-xs font-black">{a.type}</div><div className="report-source mt-1">{a.actor} · {date(a.createdAt)}</div></div>)}</div></section>
 
-        <footer className="flex items-center justify-between border-t border-[#ccd6d1] py-4 text-[10px] text-[#6c7e77]"><span>PROJECT INTELLIGENCE HUB</span><span>Management report · {market?.code ?? "ALL"} · {initiative?.code ?? "ALL"}</span></footer>
+        <footer className="flex items-center justify-between border-t border-[#ccd6d1] py-4 text-[10px] text-[#6c7e77]"><span>PROJECT INTELLIGENCE HUB</span><span>Management report · {market?.code ?? "ALL"} · {initiative?.code ?? "ALL"}{person ? ` · ${person}` : ""}</span></footer>
       </main>
     </div>
   );
